@@ -4,8 +4,9 @@
   "description": "Just node, express, and mongo",
   "main": "app.js",
   "scripts": {
-    "test": "test",
-    "start": "nodemon app.js"
+    "start": "node app.js",
+    "test": "mocha test/test-server.js --exit",
+    "test-watch": "nodemon --exec yarn test"
   },
   "keywords": [
     "express",
