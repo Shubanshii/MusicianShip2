@@ -1,3 +1,2 @@
-module.exports = {
-  'url': 'mongodb://localhost/musicianship'
-};
+
+exports.DATABASE_URL = process.env.DATABASE_URL || global.DATABASE_URL || 'mongodb://localhost/musicianship';

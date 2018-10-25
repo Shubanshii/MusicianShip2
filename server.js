@@ -12,12 +12,12 @@ var cookieParser = require('cookie-parser');
 var bodyParser = require('body-parser');
 var session = require('express-session');
 
-var configDB = require('./config/database.js');
+var {DATABASE_URL} = require('./config/database.js');
 
 //configuration
-mongoose.connect(configDB.url, {
-  useMongoClient: true
-}); // connect to our database
+// mongoose.connect(DATABASE_URL, {
+//   useMongoClient: true
+// }); // connect to our database
 
 require('./config/passport')(passport); // pass passport for configuration
 
@@ -45,7 +45,50 @@ app.use(flash()); // use connect-flash for flash messages stored in sessions
 require('./app/routes.js')(app, passport); // load our routes and pass in our app and fully configured passport
 
 // launch
-app.listen(port);
-console.log('The magic happens on port ' + port);
+// Referenced by both runServer and closeServer. closeServer
+// assumes runServer has run and set `server` to a server object
+let server;
 
-module.exports = { app };
+function runServer() {
+  return new Promise((resolve, reject) => {
+    mongoose.connect(DATABASE_URL, { useMongoClient: true }, err => {
+      if (err) {
+        return reject(err);
+      }
+      server = app
+        .listen(port, () => {
+          console.log(`Your app is listening on port ${port}`);
+          resolve();
+        })
+        .on('error', err => {
+          mongoose.disconnect();
+          reject(err);
+        });
+    });
+  });
+}
+
+function closeServer() {
+  return mongoose.disconnect().then(() => {
+    return new Promise((resolve, reject) => {
+      console.log('Closing server');
+      server.close(err => {
+        if (err) {
+          return reject(err);
+        }
+        resolve();
+      });
+    });
+  });
+}
+
+if (require.main === module) {
+  runServer().catch(err => console.error(err));
+}
+
+module.exports = { app, runServer, closeServer };
+
+// app.listen(port);
+// console.log('The magic happens on port ' + port);
+//
+// module.exports = { app };
