@@ -40,10 +40,15 @@ module.exports = function(passport) {
         // if there are any errors, return the error
         if (err)
           return done(err);
-
+        console.log('email', email);
+        console.log('password', password);
         // check to see if theres already a user with that email
         if (user) {
           return done(null, false, req.flash('signupMessage', 'That email is already taken.'));
+        } else if (email.indexOf('@') === -1) {
+            return done(null, false, req.flash('signupMessage', 'Invalid email address'));
+        } else if (password.length < 5 || password.length > 20) {
+            return done(null, false, req.flash('signupMessage', 'Passwords may have a minimum of 5 characters, and a maximum of 20 characters.'));
         } else {
           // if there is no user with that email
           // create the user

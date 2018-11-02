@@ -1,103 +1,110 @@
 "use strict";
-global.DATABASE_URL = 'mongodb://localhost/musicianship-test';
-// const chai = require("chai");
-const chaiHttp = require("chai-http");
+const chai = require('chai');
+const chaiHttp = require('chai-http');
 const {app, runServer, closeServer} = require('../server');
-const request = require('supertest');
+const bcrypt = require('bcrypt-nodejs');
 
 const User = require('../app/models/user');
+const { PORT, TEST_DATABASE_URL } = require('../config/database');
 
-var expect = require('chai').expect;
+const expect = chai.expect;
 
-// chai.use(chaiHttp);
+chai.use(chaiHttp);
 
-// set up data we need to pass to the login method
-const userCredentials = {
-  email: 'sponge@bob.com',
-  password: 'garyTheSnail'
-};
+describe('Signing up, protected routes, etc.', function() {
+  const userCredentials = {
+    email: 'sponge@bob.com',
+    password: 'garyTheSnail'
+  };
 
-// login user before we run any tests
-var authenticatedUser = request.agent(app);
+  const badEmailCredentials = {
+    email: 'spongebob.com',
+    password: 'garyTheSnail'
+  };
 
-before(function(done){
-  authenticatedUser
-    .post('/login')
-    .send(userCredentials)
-    .end(function(err, response){
-      expect(response.statusCode).to.equal(200);
-      //expect('Location', '/home');
-      done();
-    });
-});
+  const badPasswordCredentials = {
+    email: 'sponge1@bob1.com',
+    password: 'g'
+  };
 
-describe('GET /profile', function(done) {
-  it('should return a 200 response if the user is logged in', function(done) {
-    authenticatedUser.get('/profile')
-    .expect(200, done);
+  before(function() {
+    return runServer(TEST_DATABASE_URL);
   });
 
-  it('should return a 302 response and redirect to /login', function(done) {
-    request(app).get('/profile')
-    .expect('Location', '/login')
-    .expect(302, done);
-  })
-})
+  after(function() {
+    return closeServer();
+  });
 
-// describe('/signup', function() {
-//   const email = 'exampleEmail';
-//   const password = 'examplePass';
-//   const emailB = 'exampleEmailB';
-//   const passwordB = 'examplePassB';
-//
-//   before(function() {
-//     return runServer();
-//   });
-//
-//   after(function() {
-//     return closeServer();
-//   });
-//
-//   beforeEach(function() {});
-//
-//   afterEach(function() {
-//     return User.remove({});
-//   });
-//
-//   describe('/signup', function() {
-//     describe('POST', function() {
-//       it('should create a user', (done) => {
-//         var email = 'example@example.com';
-//         var password = '123mnb!';
-//
-//         return chai
-//           .request(app)
-//           .post('/signup')
-//           .send({
-//             'email':'example@example.com',
-//             'password': '123mnb!'})
-//           .then((res) => {
-//             expect(res).to.have.status(302);
-//             done();
-//           })
-//
-//       })
-//     });
-//   });
-// });
-//
-// // this function deletes the entire database.
-// // we'll call it in an `afterEach` block below
-// // to ensure data from one test does not stick
-// // around for next one
-// function tearDownDb() {
-//   return new Promise((resolve, reject) => {
-//     console.warn('Deleting database');
-//     mongoose.connection.dropDatabase()
-//       .then(result => resolve(result))
-//       .catch(err => reject(err));
-//   });
-// }
+  it('should not get profile if not logged in', function() {
+    return chai
+      .request(app)
+      .get('/profile')
+      .then((res) => {
+        expect(res.text).to.include('Login or Register');
+        expect(res.redirects).to.not.include('/profile');
+      })
+  });
+
+  it('should reject users with invalid email', function() {
+    return chai
+      .request(app)
+      .post("/signup")
+      .send(badEmailCredentials)
+      .then(() => {
+        User.findOne({ 'local.email': badEmailCredentials.email }, function(err, user) {
+          expect(user).to.equal(null);
+        });
+      });
+  });
+
+  it('should reject users with invalid password', function() {
+    return chai
+      .request(app)
+      .post("/signup")
+      .send(badPasswordCredentials)
+      .then(() => {
+        User.findOne({ 'local.email': badPasswordCredentials.email }, function(err, user) {
+          expect(user).to.equal(null);
+        });
+      });
+  });
+
+  describe('sign up and get profile', function() {
+    var agent = chai.request.agent(app);
+    it('should sign up users with valid email and password', function() {
+      return agent
+        .post('/signup')
+        .send(userCredentials)
+        .then((res) => {
+          User.findOne({ 'local.email': userCredentials.email }, function(err, user) {
+            if (user) {
+              expect(user.local.email).to.equal(userCredentials.email);
+            }
+          });
+          expect(res.redirects[0]).to.include('/profile');
+          chai.request(app).get('/logout');
+          return User.remove({'local.email': userCredentials.email});
+        })
+    });
+    it('should get profile if user signed up correctly', function() {
+      return agent
+        .post('/signup')
+        .send(userCredentials)
+        .then(() => {
+          return agent
+            .get('/profile')
+            .then((res) => {
+              console.log('get profile', res);
+              return User.remove({'local.email': userCredentials.email});
+            });
+        })
+    });
+  });
+
+
+
+
+});
 
 describe("index page", function() {
   it("should exist", function() {
@@ -109,3 +116,72 @@ describe("index page", function() {
       });
   });
 });
+
+//let's set up the data we need to pass to the login method
+// describe('protected routes', function() {
+//   const userCredentials = {
+//     email: 'sponge@bob.com',
+//     password: 'garyTheSnail'
+//   }
+//
+//   before(function () {
+//       return runServer(TEST_DATABASE_URL);
+//   });
+//
+//   after(function () {
+//     return closeServer();
+//   });
+//
+//   beforeEach(function() {
+//     return chai
+//       .request(app)
+//       .get("/signup")
+//       .then(() => {
+//         return chai
+//           .request(app)
+//           .post("/signup")
+//           .send(userCredentials)
+//       })
+//
+//
+//       // .then(function(res) {
+//       //
+//       // })
+//   });
+//
+//   afterEach(function () {
+//     return User.remove({'local.email': 'sponge@bob.com'});
+//   });
+//
+//   describe('/profile', function(res) {
+//     it('Should send protected data', function(res) {
+//
+//       // return chai
+//       //   .request(app)
+//       //   .get('/profile')
+//       //   .then(res => {
+//       //     console.log(res.text);
+//       //     expect(res).to.have.status(200);
+//       //     expect(res.body).to.be.an('object');
+//       //     expect(res.text).to.be.a('string');
+//       //     // expect(res.text).to.include('Would you like to start a campaign?');
+//       //   });
+//     });
+//     // it('Should reject requests with no credentials', function() {
+//     //   return chai
+//     //     .request(app)
+//     //     .get('/logout')
+//     //     .then(res => {
+//     //       expect(res).to.have.status(200);
+//     //       ex
+//     //     })
+//     //     // .get('/profile')
+//     //     // .then(res => {
+//     //     //   expect(res).to.have.status(200);
+//     //     //   expect(res.body).to.be.an('object');
+//     //     //   expect(res.text).to.be.a('string');
+//     //     //   expect(res.text).to.include('<!DOCTYPE html>');
+//     //     // });
+//     // });
+//   });
+// })
