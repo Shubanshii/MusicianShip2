@@ -94,7 +94,6 @@ describe('Signing up, protected routes, etc.', function() {
           return agent
             .get('/profile')
             .then((res) => {
-              console.log('get profile', res);
               return User.remove({'local.email': userCredentials.email});
             });
         })
