@@ -135,7 +135,7 @@ describe('MusicianShip', function() {
             .post('/campaigns')
             .send(campaign)
             .then((res) => {
-              console.log(res);
+              console.log(res.text);
               User.findById(res.body.user, function(err, user) {
                 console.log(user);
                 expect(user.local.email).to.equal(userCredentials.email);
