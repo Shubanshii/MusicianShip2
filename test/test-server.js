@@ -135,8 +135,8 @@ describe('MusicianShip', function() {
             .post('/campaigns')
             .send(campaign)
             .then((res) => {
-              // console.log('res', res.body);
               User.findById(res.body.user, function(err, user) {
+                console.log(user);
                 expect(user.local.email).to.equal(userCredentials.email);
               })
               expect(res.body.artist).to.equal(campaign.artist);
@@ -160,14 +160,7 @@ describe('MusicianShip', function() {
             .then((res) => {
               expect(res.status).to.equal(400);
               expect(res.text).to.equal('Missing `artist` in request body');
-              // User.findById(res.body.user, function(err, user) {
-              //   expect(user.local.email).to.equal(userCredentials.email);
-              // })
-              // expect(res.body.artist).to.equal(campaign.artist);
-              // expect(res.body.title).to.equal(campaign.title);
-              // expect(res.body.description).to.equal(campaign.description);
-              // expect(res.body.financialGoal).to.equal(campaign.financialGoal);
-              // expect(res.body.files).to.equal(campaign.files);
+
               chai.request(app).get('/logout');
               return User.remove({'local.email': userCredentials.email});
             });
