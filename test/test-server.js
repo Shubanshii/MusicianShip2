@@ -5,13 +5,14 @@ const {app, runServer, closeServer} = require('../server');
 const bcrypt = require('bcrypt-nodejs');
 
 const User = require('../app/models/user');
+const Campaign = require('../app/models/campaign');
 const { PORT, TEST_DATABASE_URL } = require('../config/database');
 
 const expect = chai.expect;
 
 chai.use(chaiHttp);
 
-describe('Signing up, protected routes, etc.', function() {
+describe('MusicianShip', function() {
   const userCredentials = {
     email: 'sponge@bob.com',
     password: 'garyTheSnail'
@@ -27,6 +28,21 @@ describe('Signing up, protected routes, etc.', function() {
     password: 'g'
   };
 
+  const campaign = {
+    artist: "Red Hot Chili Peppers",
+    title: "Flea and Chad Uber Jam",
+    description: "Flea and Chad jamming.  Become the John Frusciante!!!",
+    financialGoal: 145,
+    files: "data:application/octet-stream;base64,Cg=="
+  }
+
+  const badCampaign = {
+    title: "Flea and Chad Uber Jam",
+    description: "Flea and Chad jamming.  Become the John Frusciante!!!",
+    financialGoal: 145,
+    files: "data:application/octet-stream;base64,Cg=="
+  }
+
   before(function() {
     return runServer(TEST_DATABASE_URL);
   });
@@ -35,41 +51,49 @@ describe('Signing up, protected routes, etc.', function() {
     return closeServer();
   });
 
-  it('should not get profile if not logged in', function() {
-    return chai
-      .request(app)
-      .get('/profile')
-      .then((res) => {
-        expect(res.text).to.include('Login or Register');
-        expect(res.redirects).to.not.include('/profile');
-      })
-  });
 
-  it('should reject users with invalid email', function() {
-    return chai
-      .request(app)
-      .post("/signup")
-      .send(badEmailCredentials)
-      .then(() => {
-        User.findOne({ 'local.email': badEmailCredentials.email }, function(err, user) {
-          expect(user).to.equal(null);
+
+  describe('initial rejections', function() {
+    it('should not get profile if not logged in', function() {
+      return chai
+        .request(app)
+        .get('/profile')
+        .then((res) => {
+          expect(res.text).to.include('Login or Register');
+          expect(res.redirects[0]).to.not.include('/profile');
+          expect(res.redirects[0].length > 1).to.be.true;
+        })
+    });
+
+    it('should reject users with invalid email', function() {
+      return chai
+        .request(app)
+        .post("/signup")
+        .send(badEmailCredentials)
+        .then((res) => {
+          User.findOne({ 'local.email': badEmailCredentials.email }, function(err, user) {
+            expect(user).to.equal(null);
+          });
+          expect(res.redirects[0]).to.include('/signup');
         });
-      });
-  });
+    });
 
-  it('should reject users with invalid password', function() {
-    return chai
-      .request(app)
-      .post("/signup")
-      .send(badPasswordCredentials)
-      .then(() => {
-        User.findOne({ 'local.email': badPasswordCredentials.email }, function(err, user) {
-          expect(user).to.equal(null);
+    it('should reject users with invalid password', function() {
+      return chai
+        .request(app)
+        .post("/signup")
+        .send(badPasswordCredentials)
+        .then((res) => {
+          User.findOne({ 'local.email': badPasswordCredentials.email }, function(err, user) {
+            expect(user).to.equal(null);
+          });
+          expect(res.redirects[0]).to.include('/signup');
         });
-      });
+    });
   });
 
-  describe('sign up and get profile', function() {
+
+  describe('sign up and routes that follow', function() {
     var agent = chai.request.agent(app);
     it('should sign up users with valid email and password', function() {
       return agent
@@ -94,15 +118,62 @@ describe('Signing up, protected routes, etc.', function() {
           return agent
             .get('/profile')
             .then((res) => {
+              expect(res.text).to.include('Would you like to start a campaign?')
+              expect(res.redirects[0]).to.equal(undefined);
+              chai.request(app).get('/logout');
+              return User.remove({'local.email': userCredentials.email});
+            });
+        })
+    });
+
+    it('should post campaign', function() {
+      return agent
+        .post('/signup')
+        .send(userCredentials)
+        .then(() => {
+          return agent
+            .post('/campaigns')
+            .send(campaign)
+            .then((res) => {
+              // console.log('res', res.body);
+              User.findById(res.body.user, function(err, user) {
+                expect(user.local.email).to.equal(userCredentials.email);
+              })
+              expect(res.body.artist).to.equal(campaign.artist);
+              expect(res.body.title).to.equal(campaign.title);
+              expect(res.body.description).to.equal(campaign.description);
+              expect(res.body.financialGoal).to.equal(campaign.financialGoal);
+              expect(res.body.files).to.equal(campaign.files);
+              chai.request(app).get('/logout');
+              return User.remove({'local.email': userCredentials.email});
+            });
+        })
+    });
+    it("should not post campaign if it's missing a required field", function() {
+      return agent
+        .post('/signup')
+        .send(userCredentials)
+        .then(() => {
+          return agent
+            .post('/campaigns')
+            .send(badCampaign)
+            .then((res) => {
+              expect(res.status).to.equal(400);
+              expect(res.text).to.equal('Missing `artist` in request body');
+              // User.findById(res.body.user, function(err, user) {
+              //   expect(user.local.email).to.equal(userCredentials.email);
+              // })
+              // expect(res.body.artist).to.equal(campaign.artist);
+              // expect(res.body.title).to.equal(campaign.title);
+              // expect(res.body.description).to.equal(campaign.description);
+              // expect(res.body.financialGoal).to.equal(campaign.financialGoal);
+              // expect(res.body.files).to.equal(campaign.files);
+              chai.request(app).get('/logout');
               return User.remove({'local.email': userCredentials.email});
             });
         })
     });
   });
-
-
-
-
 });
 
 describe("index page", function() {

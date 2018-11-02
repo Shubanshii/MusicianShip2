@@ -1,4 +1,9 @@
+'use strict';
+
 module.exports = function(app, passport) {
+  const User = require('./models/user');
+  const Campaign = require('./models/campaign');
+
   //HOME PAGE
   app.get('/', function(req, res) {
     res.render('index.ejs');
@@ -50,15 +55,53 @@ module.exports = function(app, passport) {
     res.redirect('/');
   })
 
+  // create campaign page
   app.get('/campaign', isLoggedIn, function(req, res) {
     // res.render('campaign.ejs', {
     //   user: req.user // get the user out of session and pass to template
     // });
     res.render('campaign.ejs');
   });
+
+  // ROUTES TO CREATE CAMPAIGN
+  app.post('/campaigns', isLoggedIn, (req, res) => {
+    const requiredFields = ['artist', 'title', 'description', 'financialGoal'];
+    console.log(req.session.passport.user);
+    User
+      .find()
+      .then(user => {
+        // console.log(user);
+      })
+    for (let i=0; i<requiredFields.length; i++) {
+      const field = requiredFields[i];
+      if (!(field in req.body)) {
+        const message = `Missing \`${field}\` in request body`
+        console.error(message);
+        return res.status(400).send(message);
+      }
+    }
+
+    Campaign
+      .create({
+        id: req.body._id,
+        artist: req.body.artist,
+        title: req.body.title,
+        description: req.body.description,
+        files: req.body.files,
+        contributions: req.body.contributions,
+        user: req.session.passport.user,
+        financialGoal: req.body.financialGoal,
+        status: req.body.status,
+        createdAt: req.body.createdAt})
+      .then(
+        campaign => res.status(201).json(campaign.serialize()))
+      .catch(err => {
+        console.error(err);
+        res.status(500).json({message: 'Internal server error'});
+      });
+  });
 };
 
-// ROUTES TO CREATE CAMPAIGN
 
 
 // route middleware to make sure a user is logged in

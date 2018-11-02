@@ -10,6 +10,31 @@
     </style>
   </head>
   <body>
-    <h1>Yoooooooooooooooo Campaignzzzzz!!</h1>
+    <div class="container">
+      <div class="page-header text-center">
+        <h1><span class="fa fa-music">Welcome to MusicianShip</span></h1>
+      </div>
+      <h1>Create Campaign</h1>
+
+      <form method="post" enctype="multipart/form-data" class="create-campaign-form">
+        Artist/Band Name:<br>
+        <input class="artist" type="text" name="artist"><br>
+        Title:<br>
+        <input class="title" type="text" name="title"><br>
+        Description:<br>
+        <input class="description" type="text" name="description"><br>
+        Files (if any):<br>
+
+        <input type="file" id="file-id" name="files"
+        className="custom-file-input" />
+
+
+        <br>
+        Financial Goal:<br>
+        <input class="financialGoal" type="text" name="financialGoal"><br>
+        <input type="submit" value="Submit">
+    </div>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.1.0/jquery.min.js"></script>
+	  <script type="text/javascript" src="./js/campaign.js"></script>
   </body>
 </html>
