@@ -31,7 +31,8 @@ describe('MusicianShip', function() {
   const campaign = {
     artist: "Red Hot Chili Peppers",
     title: "Flea and Chad Uber Jam",
-    description: "Flea and Chad jamming.  Become the John Frusciante!!!",
+    // maybe this is too long?
+    description: "Flea and Chad jamming",
     financialGoal: 145,
     files: "data:application/octet-stream;base64,Cg=="
   }
