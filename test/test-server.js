@@ -1,6 +1,7 @@
 "use strict";
 const chai = require('chai');
 const chaiHttp = require('chai-http');
+const mongoose = require('mongoose');
 const {app, runServer, closeServer} = require('../server');
 const bcrypt = require('bcrypt-nodejs');
 
@@ -11,6 +12,15 @@ const { PORT, TEST_DATABASE_URL } = require('../config/database');
 const expect = chai.expect;
 
 chai.use(chaiHttp);
+
+function tearDownDb() {
+  return new Promise((resolve, reject) => {
+    console.warn('Deleting database');
+    mongoose.connection.dropDatabase()
+      .then(result => resolve(result))
+      .catch(err => reject(err));
+  });
+}
 
 describe('MusicianShip', function() {
   const userCredentials = {
@@ -31,7 +41,8 @@ describe('MusicianShip', function() {
   const campaign = {
     artist: "Red Hot Chili Peppers",
     title: "Flea and Chad Uber Jam",
-    description: "Flea and Chad jamming.  Become the John Frusciante!!!",
+    // maybe this is too long?
+    description: "Flea and Chad jamming",
     financialGoal: 145,
     files: "data:application/octet-stream;base64,Cg=="
   }
@@ -46,6 +57,12 @@ describe('MusicianShip', function() {
   before(function() {
     return runServer(TEST_DATABASE_URL);
   });
+
+  afterEach(function () {
+  // tear down database so we ensure no state from this test
+  // effects any coming after.
+  return tearDownDb();
+});
 
   after(function() {
     return closeServer();
@@ -106,8 +123,8 @@ describe('MusicianShip', function() {
             }
           });
           expect(res.redirects[0]).to.include('/profile');
-          chai.request(app).get('/logout');
-          return User.remove({'local.email': userCredentials.email});
+          // chai.request(app).get('/logout');
+          // return User.remove({'local.email': userCredentials.email});
         })
     });
     it('should get profile if user signed up correctly', function() {
@@ -120,8 +137,8 @@ describe('MusicianShip', function() {
             .then((res) => {
               expect(res.text).to.include('Would you like to start a campaign?')
               expect(res.redirects[0]).to.equal(undefined);
-              chai.request(app).get('/logout');
-              return User.remove({'local.email': userCredentials.email});
+              // chai.request(app).get('/logout');
+              // return User.remove({'local.email': userCredentials.email});
             });
         })
     });
@@ -145,8 +162,8 @@ describe('MusicianShip', function() {
               expect(res.body.description).to.equal(campaign.description);
               expect(res.body.financialGoal).to.equal(campaign.financialGoal);
               expect(res.body.files).to.equal(campaign.files);
-              chai.request(app).get('/logout');
-              return User.remove({'local.email': userCredentials.email});
+              // chai.request(app).get('/logout');
+              // return User.remove({'local.email': userCredentials.email});
             });
         })
     });
@@ -162,8 +179,8 @@ describe('MusicianShip', function() {
               expect(res.status).to.equal(400);
               expect(res.text).to.equal('Missing `artist` in request body');
 
-              chai.request(app).get('/logout');
-              return User.remove({'local.email': userCredentials.email});
+              // chai.request(app).get('/logout');
+              // return User.remove({'local.email': userCredentials.email});
             });
         })
     });
