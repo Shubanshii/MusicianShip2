@@ -12,7 +12,7 @@ const { PORT, TEST_DATABASE_URL } = require('../config/database');
 const expect = chai.expect;
 
 chai.use(chaiHttp);
-
+const agent = chai.request.agent(app);
 function tearDownDb() {
   return new Promise((resolve, reject) => {
     console.warn('Deleting database');
@@ -58,6 +58,13 @@ describe('MusicianShip', function() {
     return runServer(TEST_DATABASE_URL);
   });
 
+  beforeEach(function() {
+    // var agent = chai.request.agent(app);
+    return agent
+      .post('/signup')
+      .send(userCredentials)
+  });
+
   afterEach(function () {
   // tear down database so we ensure no state from this test
   // effects any coming after.
@@ -72,6 +79,7 @@ describe('MusicianShip', function() {
 
   describe('initial rejections', function() {
     it('should not get profile if not logged in', function() {
+      chai.request(app).get('/logout');
       return chai
         .request(app)
         .get('/profile')
@@ -83,6 +91,7 @@ describe('MusicianShip', function() {
     });
 
     it('should reject users with invalid email', function() {
+      chai.request(app).get('/logout');
       return chai
         .request(app)
         .post("/signup")
@@ -96,6 +105,7 @@ describe('MusicianShip', function() {
     });
 
     it('should reject users with invalid password', function() {
+      chai.request(app).get('/logout');
       return chai
         .request(app)
         .post("/signup")
@@ -111,8 +121,10 @@ describe('MusicianShip', function() {
 
 
   describe('sign up and routes that follow', function() {
-    var agent = chai.request.agent(app);
     it('should sign up users with valid email and password', function() {
+      chai.request(app).get('/logout');
+      return User.remove({'local.email': userCredentials.email});
+      // var agent = chai.request.agent(app);
       return agent
         .post('/signup')
         .send(userCredentials)
@@ -128,58 +140,43 @@ describe('MusicianShip', function() {
     });
     it('should get profile if user signed up correctly', function() {
       return agent
-        .post('/signup')
-        .send(userCredentials)
-        .then(() => {
-          return agent
-            .get('/profile')
-            .then((res) => {
-              expect(res.text).to.include('Would you like to start a campaign?')
-              expect(res.redirects[0]).to.equal(undefined);
-              // chai.request(app).get('/logout');
-              // return User.remove({'local.email': userCredentials.email});
-            });
-        })
+        .get('/profile')
+        .then((res) => {
+          expect(res.text).to.include('Would you like to start a campaign?')
+          expect(res.redirects[0]).to.equal(undefined);
+          // chai.request(app).get('/logout');
+          // return User.remove({'local.email': userCredentials.email});
+        });
     });
 
     it('should post campaign', function() {
       return agent
-        .post('/signup')
-        .send(userCredentials)
-        .then(() => {
-          return agent
-            .post('/campaigns')
-            .send(campaign)
-            .then((res) => {
-              console.log('resbody', res.body);
-              User.findById(res.body.user, function(err, user) {
-                console.log('user', user);
-                expect(user.local.email).to.equal(userCredentials.email);
-              })
-              expect(res.body.artist).to.equal(campaign.artist);
-              expect(res.body.title).to.equal(campaign.title);
-              expect(res.body.description).to.equal(campaign.description);
-              expect(res.body.financialGoal).to.equal(campaign.financialGoal);
-              expect(res.body.files).to.equal(campaign.files);
-              // chai.request(app).get('/logout');
-              // return User.remove({'local.email': userCredentials.email});
-            });
-        })
+        .post('/campaigns')
+        .send(campaign)
+        .then((res) => {
+          console.log('resbody', res.body);
+          User.findById(res.body.user, function(err, user) {
+            console.log('user', user);
+            expect(user.local.email).to.equal(userCredentials.email);
+          })
+          expect(res.body.artist).to.equal(campaign.artist);
+          expect(res.body.title).to.equal(campaign.title);
+          expect(res.body.description).to.equal(campaign.description);
+          expect(res.body.financialGoal).to.equal(campaign.financialGoal);
+          expect(res.body.files).to.equal(campaign.files);
+          // chai.request(app).get('/logout');
+          // return User.remove({'local.email': userCredentials.email});
+        });
     });
     it("should not post campaign if it's missing a required field", function() {
       return agent
-        .post('/signup')
-        .send(userCredentials)
-        .then(() => {
-          return agent
-            .post('/campaigns')
-            .send(badCampaign)
-            .then((res) => {
-              expect(res.status).to.equal(400);
-              expect(res.text).to.equal('Missing `artist` in request body');
+        .post('/campaigns')
+        .send(badCampaign)
+        .then((res) => {
+          expect(res.status).to.equal(400);
+          expect(res.text).to.equal('Missing `artist` in request body');
 
-            });
-        })
+        });
     });
   });
 });
