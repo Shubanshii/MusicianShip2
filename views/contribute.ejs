@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+  <head>
+    <meta charset="utf-8">
+    <title>MusicianShip</title>
+    <link rel="stylesheet" href="//netdna.bootstrapcdn.com/bootstrap/3.0.2/css/bootstrap.min.css">
+    <link rel="stylesheet" href="//netdna.bootstrapcdn.com/font-awesome/4.0.3/css/font-awesome.min.css">
+    <style>
+        body        { padding-top:80px; word-wrap:break-word; }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <div class="page-header text-center">
+        <h1><span class="fa fa-music">Welcome to MusicianShip</span></h1>
+      </div>
+      <div>
+        <h1>Contribute</h1>
+        <h3 class="artist"><%= artist %></h3>
+        <h3 class="title"><%= title %></h3>
+        <h3 class="description"><%= description %></h3>
+
+      </div>
+      <div>
+        <form class="contribution-form" action="">
+          Amount:<br>
+          <input class="amount" type="text" name="amount">
+          <input type="submit" value="Submit">
+        </form>
+      </div>
+      <div class="files"></div>
+    </div>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.1.0/jquery.min.js"></script>
+	  <script type="text/javascript" src="../js/contribute.js"></script>
+  </body>
+</html>
