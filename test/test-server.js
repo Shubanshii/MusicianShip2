@@ -6,6 +6,7 @@ const {app, runServer, closeServer} = require('../server');
 const bcrypt = require('bcrypt-nodejs');
 
 const User = require('../app/models/user');
+const Contribution = require('../app/models/contribution');
 const Campaign = require('../app/models/campaign');
 const { PORT, TEST_DATABASE_URL } = require('../config/database');
 
@@ -190,13 +191,27 @@ describe('MusicianShip', function() {
       return agent
         .get('/campaigns/' + id)
         .then((res) => {
-          console.log('sdfd9sf0lkd', res);
           expect(res.text).to.include(campaign.artist);
           expect(res.text).to.include(campaign.title);
           expect(res.text).to.include(campaign.description);
           expect(res.redirects[0]).to.equal(undefined);
         })
     })
+
+    // CANT FIGURE OUT POST CONTRIBUTION TEST
+    // it('should post contribution', function() {
+    //   return agent
+    //     .post('/contributions')
+    //     .send({
+    //       amount: 5,
+    //       campaignId: id
+    //     })
+    //     .then((res) => {
+    //       Campaign.findById(id, function(err, campaign) {
+    //         console.log(campaign);
+    //       })
+    //     })
+    // })
   });
 });
 

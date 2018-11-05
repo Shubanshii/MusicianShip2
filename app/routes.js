@@ -69,7 +69,7 @@ module.exports = function(app, passport) {
 
   app.post('/campaigns', isLoggedIn, (req, res) => {
     const requiredFields = ['artist', 'title', 'description', 'financialGoal'];
-    console.log(req.session.passport.user);
+    // console.log(req.session.passport.user);
     User
       .find()
       .then(user => {
@@ -109,11 +109,10 @@ module.exports = function(app, passport) {
   app.get('/campaigns/:id', isLoggedIn, (req, res) => {
 
 
-    console.log(req.params.id);
     Campaign
       .findById(req.params.id)
       .then(campaign => {
-        console.log(campaign);
+        // console.log(campaign);
         res.render('contribute', campaign)
       })
       .catch(err => {
