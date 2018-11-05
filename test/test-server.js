@@ -54,6 +54,8 @@ describe('MusicianShip', function() {
     files: "data:application/octet-stream;base64,Cg=="
   }
 
+  let id;
+
   before(function() {
     return runServer(TEST_DATABASE_URL);
   });
@@ -63,6 +65,14 @@ describe('MusicianShip', function() {
     return agent
       .post('/signup')
       .send(userCredentials)
+      .then(() => {
+        return agent
+          .post('/campaigns')
+          .send(campaign)
+          .then((res) => {
+            id = res.body.id;
+          })
+      })
   });
 
   afterEach(function () {
@@ -154,9 +164,7 @@ describe('MusicianShip', function() {
         .post('/campaigns')
         .send(campaign)
         .then((res) => {
-          console.log('resbody', res.body);
           User.findById(res.body.user, function(err, user) {
-            console.log('user', user);
             expect(user.local.email).to.equal(userCredentials.email);
           })
           expect(res.body.artist).to.equal(campaign.artist);
@@ -178,6 +186,17 @@ describe('MusicianShip', function() {
 
         });
     });
+    it('should get campaign by id', function() {
+      return agent
+        .get('/campaigns/' + id)
+        .then((res) => {
+          console.log('sdfd9sf0lkd', res);
+          expect(res.text).to.include(campaign.artist);
+          expect(res.text).to.include(campaign.title);
+          expect(res.text).to.include(campaign.description);
+          expect(res.redirects[0]).to.equal(undefined);
+        })
+    })
   });
 });
 
