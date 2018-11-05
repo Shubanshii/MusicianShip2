@@ -186,8 +186,16 @@ describe('MusicianShip', function() {
 
         });
     });
-    it('should post contribution', function() {
-      // console.log('sdfsd9fsdfksdf09df', id);
+    it('should get campaign by id', function() {
+      return agent
+        .get('/campaigns/' + id)
+        .then((res) => {
+          console.log('sdfd9sf0lkd', res);
+          expect(res.text).to.include(campaign.artist);
+          expect(res.text).to.include(campaign.title);
+          expect(res.text).to.include(campaign.description);
+          expect(res.redirects[0]).to.equal(undefined);
+        })
     })
   });
 });
