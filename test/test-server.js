@@ -123,8 +123,7 @@ describe('MusicianShip', function() {
             }
           });
           expect(res.redirects[0]).to.include('/profile');
-          // chai.request(app).get('/logout');
-          // return User.remove({'local.email': userCredentials.email});
+
         })
     });
     it('should get profile if user signed up correctly', function() {
@@ -179,8 +178,6 @@ describe('MusicianShip', function() {
               expect(res.status).to.equal(400);
               expect(res.text).to.equal('Missing `artist` in request body');
 
-              // chai.request(app).get('/logout');
-              // return User.remove({'local.email': userCredentials.email});
             });
         })
     });

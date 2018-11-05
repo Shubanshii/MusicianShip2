@@ -2,6 +2,7 @@
 
 module.exports = function(app, passport) {
   const User = require('./models/user');
+  const Contribution = require('./models/contribution');
   const Campaign = require('./models/campaign');
 
   //HOME PAGE
@@ -55,7 +56,8 @@ module.exports = function(app, passport) {
     res.redirect('/');
   })
 
-  // create campaign page
+  // GET CREATE CAMPAIGN PAGE
+
   app.get('/campaign', isLoggedIn, function(req, res) {
     // res.render('campaign.ejs', {
     //   user: req.user // get the user out of session and pass to template
@@ -63,7 +65,8 @@ module.exports = function(app, passport) {
     res.render('campaign.ejs');
   });
 
-  // ROUTES TO CREATE CAMPAIGN
+  // ROUTE TO CREATE CAMPAIGN
+
   app.post('/campaigns', isLoggedIn, (req, res) => {
     const requiredFields = ['artist', 'title', 'description', 'financialGoal'];
     console.log(req.session.passport.user);
@@ -95,6 +98,62 @@ module.exports = function(app, passport) {
         createdAt: req.body.createdAt})
       .then(
         campaign => res.status(201).json(campaign.serialize()))
+      .catch(err => {
+        console.error(err);
+        res.status(500).json({message: 'Internal server error'});
+      });
+  });
+
+  // GET PAGE FOR REQUESTED CAMPAIGN
+
+  app.get('/campaigns/:id', isLoggedIn, (req, res) => {
+
+
+    console.log(req.params.id);
+    Campaign
+      .findById(req.params.id)
+      .then(campaign => {
+        console.log(campaign);
+        res.render('contribute', campaign)
+      })
+      .catch(err => {
+        console.error(err);
+          res.status(500).json({message: 'Internal server error'})
+      });
+  });
+
+  app.post('/contributions', isLoggedIn, (req, res) => {
+    console.log('this right here');
+    const requiredFields = ['amount'];
+    for (let i=0; i<requiredFields.length; i++) {
+      const field = requiredFields[i];
+      if (!(field in req.body)) {
+        const message = `Missing \`${field}\` in request body`
+        console.error(message);
+        return res.status(400).send(message);
+      }
+    }
+
+    Contribution
+      .create({
+        id: req.body._id,
+        amount: req.body.amount,
+        user: req.body.user
+      })
+      .then(
+        contribution => {
+
+          return Campaign.findByIdAndUpdate(req.body.campaignId, {
+            $push: {
+              contributions: contribution._id
+            }
+          })
+        })
+        .then(
+          campaign => {
+            res.status(201).json(campaign.serialize());
+          }
+        )
       .catch(err => {
         console.error(err);
         res.status(500).json({message: 'Internal server error'});
