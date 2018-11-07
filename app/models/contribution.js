@@ -10,7 +10,8 @@ const contributionsSchema = mongoose.Schema({
 contributionsSchema.methods.serialize = function() {
   return {
     id: this._id,
-    amount: this.amount
+    amount: this.amount,
+    user: this.user
   }
 };
 

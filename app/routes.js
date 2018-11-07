@@ -122,7 +122,6 @@ module.exports = function(app, passport) {
   });
 
   app.post('/contributions', isLoggedIn, (req, res) => {
-    console.log('this right here');
     const requiredFields = ['amount'];
     for (let i=0; i<requiredFields.length; i++) {
       const field = requiredFields[i];
@@ -133,11 +132,13 @@ module.exports = function(app, passport) {
       }
     }
 
+    console.log('sd0f9dslflsdkjf23423423424234234324', req.session.passport.user);
+
     Contribution
       .create({
         id: req.body._id,
         amount: req.body.amount,
-        user: req.body.user
+        user: req.session.passport.user
       })
       .then(
         contribution => {
@@ -146,6 +147,8 @@ module.exports = function(app, passport) {
             $push: {
               contributions: contribution._id
             }
+          }, {
+            new: true
           })
         })
         .then(

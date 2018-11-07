@@ -46,7 +46,7 @@ describe('MusicianShip', function() {
     description: "Flea and Chad jamming",
     financialGoal: 145,
     files: "data:application/octet-stream;base64,Cg=="
-  }
+  };
 
   const badCampaign = {
     title: "Flea and Chad Uber Jam",
@@ -55,7 +55,7 @@ describe('MusicianShip', function() {
     files: "data:application/octet-stream;base64,Cg=="
   }
 
-  let id;
+  let id, user;
 
   before(function() {
     return runServer(TEST_DATABASE_URL);
@@ -66,11 +66,13 @@ describe('MusicianShip', function() {
     return agent
       .post('/signup')
       .send(userCredentials)
-      .then(() => {
+      .then((res) => {
         return agent
           .post('/campaigns')
           .send(campaign)
           .then((res) => {
+            // console.log(res.body);
+            user = res.body.user
             id = res.body.id;
           })
       })
@@ -198,20 +200,29 @@ describe('MusicianShip', function() {
         })
     })
 
-    // CANT FIGURE OUT POST CONTRIBUTION TEST
-    // it('should post contribution', function() {
-    //   return agent
-    //     .post('/contributions')
-    //     .send({
-    //       amount: 5,
-    //       campaignId: id
-    //     })
-    //     .then((res) => {
-    //       Campaign.findById(id, function(err, campaign) {
-    //         console.log(campaign);
-    //       })
-    //     })
-    // })
+    it('should post contribution', function() {
+      return agent
+        .post('/signup')
+        .send({
+          email: 'test@test.com',
+          password: 'test123'
+        })
+        .then((res) => {
+          console.log(res.text);
+        })
+      // return agent
+      //   .post('/contributions')
+      //   .send({
+      //     amount: 5,
+      //     campaignId: id
+      //   })
+      //   .then((res) => {
+      //     Contribution.findById(res.body.contributions[0], function (err, contribution) {
+      //       expect(contribution.amount).to.equal(5);
+      //       expect(contribution.user).to.equal(user);
+      //     })
+      //   })
+    })
   });
 });
 
