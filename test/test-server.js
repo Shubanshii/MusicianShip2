@@ -56,6 +56,10 @@ describe('MusicianShip', function() {
   }
 
   let id, user;
+  let newUser;
+  let contributionUser;
+  let contributionAmount;
+  let contributionId;
 
   before(function() {
     return runServer(TEST_DATABASE_URL);
@@ -200,6 +204,7 @@ describe('MusicianShip', function() {
         })
     })
 
+    // Cannot figure out tests, how do i get routes to send back more data to make it easier?
     it('should post contribution', function() {
       return agent
         .post('/signup')
@@ -208,7 +213,25 @@ describe('MusicianShip', function() {
           password: 'test123'
         })
         .then((res) => {
-          console.log(res.text);
+          // console.log('userres', res);
+          return agent
+            .post('/contributions')
+            .send({
+              amount: 5,
+              campaignId: id
+            })
+            .then((res) => {
+              console.log(res.body);
+              console.log(id);
+              expect(res.body.id).to.equal(id);
+              Contribution.findById(res.body.contributions[0], function(err, contribution) {
+                newUser = contribution.user;
+                console.log(contribution);
+                expect(contribution.amount).to.equal(5);
+
+              })
+            })
+
         })
       // return agent
       //   .post('/contributions')
