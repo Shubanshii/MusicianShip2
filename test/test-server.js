@@ -6,6 +6,7 @@ const {app, runServer, closeServer} = require('../server');
 const bcrypt = require('bcrypt-nodejs');
 
 const User = require('../app/models/user');
+const Contribution = require('../app/models/contribution');
 const Campaign = require('../app/models/campaign');
 const { PORT, TEST_DATABASE_URL } = require('../config/database');
 
@@ -45,7 +46,7 @@ describe('MusicianShip', function() {
     description: "Flea and Chad jamming",
     financialGoal: 145,
     files: "data:application/octet-stream;base64,Cg=="
-  }
+  };
 
   const badCampaign = {
     title: "Flea and Chad Uber Jam",
@@ -54,7 +55,11 @@ describe('MusicianShip', function() {
     files: "data:application/octet-stream;base64,Cg=="
   }
 
-  let id;
+  let id, user;
+  let newUser;
+  let contributionUser;
+  let contributionAmount;
+  let contributionId;
 
   before(function() {
     return runServer(TEST_DATABASE_URL);
@@ -65,11 +70,13 @@ describe('MusicianShip', function() {
     return agent
       .post('/signup')
       .send(userCredentials)
-      .then(() => {
+      .then((res) => {
         return agent
           .post('/campaigns')
           .send(campaign)
           .then((res) => {
+            // console.log(res.body);
+            user = res.body.user
             id = res.body.id;
           })
       })
@@ -190,13 +197,67 @@ describe('MusicianShip', function() {
       return agent
         .get('/campaigns/' + id)
         .then((res) => {
-          console.log('sdfd9sf0lkd', res);
           expect(res.text).to.include(campaign.artist);
           expect(res.text).to.include(campaign.title);
           expect(res.text).to.include(campaign.description);
           expect(res.redirects[0]).to.equal(undefined);
         })
     })
+
+    // Cannot figure out tests, how do i get routes to send back more data to make it easier?
+    it('should post contribution', function() {
+      return agent
+        .post('/signup')
+        .send({
+          email: 'test@test.com',
+          password: 'test123'
+        })
+        .then((res) => {
+          // console.log('userres', res);
+          return agent
+            .post('/contributions')
+            .send({
+              amount: 5,
+              campaignId: id
+            })
+            .then((res) => {
+              console.log(res.body);
+              console.log(id);
+              expect(res.body.id).to.equal(id);
+              Contribution.findById(res.body.contributions[0], function(err, contribution) {
+                newUser = contribution.user;
+                console.log(contribution);
+                expect(contribution.amount).to.equal(5);
+
+              })
+            })
+
+        })
+      // return agent
+      //   .post('/contributions')
+      //   .send({
+      //     amount: 5,
+      //     campaignId: id
+      //   })
+      //   .then((res) => {
+      //     Contribution.findById(res.body.contributions[0], function (err, contribution) {
+      //       expect(contribution.amount).to.equal(5);
+      //       expect(contribution.user).to.equal(user);
+      //     })
+      //   })
+    });
+
+    it('should render correct campaign page', function() {
+      return agent
+        .get(`/campaigns/${id}`)
+        .then((res) => {
+          console.log('campaign page', res.redirects);
+          expect(res.redirects).to.not.include('/profile');
+          expect(res.redirects).to.not.include('/');
+          expect(res.text).to.include('Red Hot Chili Peppers');
+          expect(res.text).to.not.include('Login or Register');
+        })
+    });
   });
 });
 

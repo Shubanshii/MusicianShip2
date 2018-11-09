@@ -69,7 +69,7 @@ module.exports = function(app, passport) {
 
   app.post('/campaigns', isLoggedIn, (req, res) => {
     const requiredFields = ['artist', 'title', 'description', 'financialGoal'];
-    console.log(req.session.passport.user);
+    // console.log(req.session.passport.user);
     User
       .find()
       .then(user => {
@@ -104,17 +104,39 @@ module.exports = function(app, passport) {
       });
   });
 
+
+
+//   app.patch('/campaigns/:id', isLoggedIn, (req, res) => {
+//   if (!(req.params.id && req.body.id && req.params.id === req.body.id)) {
+//     res.status(400).json({
+//       error: 'Request path id and request body id values must match'
+//     });
+//   }
+//
+//   const updated = {};
+//   const updateableFields = ['financialGoal'];
+//   updateableFields.forEach(field => {
+//     if (field in req.body) {
+//       updated[field] = req.body[field];
+//     }
+//   });
+//
+//   Campaign
+//     .findByIdAndUpdate(req.params.id, { $set: updated }, { new: true })
+//     .then(updatedCampaign => res.status(204).end())
+//     .catch(err => res.status(500).json({ message: 'Something went wrong' }));
+// });
+
   // GET PAGE FOR REQUESTED CAMPAIGN
 
   app.get('/campaigns/:id', isLoggedIn, (req, res) => {
 
-
-    console.log(req.params.id);
+    // console.log(res);
     Campaign
       .findById(req.params.id)
       .then(campaign => {
-        console.log(campaign);
-        res.render('contribute', campaign)
+        // console.log(campaign);
+        res.render('contribute', campaign);
       })
       .catch(err => {
         console.error(err);
@@ -122,8 +144,29 @@ module.exports = function(app, passport) {
       });
   });
 
+  // GET FINANICAL GOAL
+  app.get('/financialgoal/:id', isLoggedIn, (req, res) => {
+    Campaign
+      .findById(req.params.id)
+      .then(campaign => {
+        console.log('financialgoal log', campaign);
+        res.json({
+        id: campaign._id,
+        artist: campaign.artist,
+        title: campaign.title,
+        description: campaign.description,
+        files: campaign.files,
+        user: campaign.user,
+        financialGoal: campaign.financialGoal,
+        contributions: campaign.contributions
+      });
+      }).catch(err => {
+        console.error(err);
+          res.status(500).json({message: 'Internal server error'})
+      });
+  });
+
   app.post('/contributions', isLoggedIn, (req, res) => {
-    console.log('this right here');
     const requiredFields = ['amount'];
     for (let i=0; i<requiredFields.length; i++) {
       const field = requiredFields[i];
@@ -134,11 +177,13 @@ module.exports = function(app, passport) {
       }
     }
 
+    console.log('sd0f9dslflsdkjf23423423424234234324', req.session.passport.user);
+
     Contribution
       .create({
         id: req.body._id,
         amount: req.body.amount,
-        user: req.body.user
+        user: req.session.passport.user
       })
       .then(
         contribution => {
@@ -147,6 +192,8 @@ module.exports = function(app, passport) {
             $push: {
               contributions: contribution._id
             }
+          }, {
+            new: true
           })
         })
         .then(
