@@ -245,7 +245,19 @@ describe('MusicianShip', function() {
       //       expect(contribution.user).to.equal(user);
       //     })
       //   })
-    })
+    });
+
+    it('should render correct campaign page', function() {
+      return agent
+        .get(`/campaigns/${id}`)
+        .then((res) => {
+          console.log('campaign page', res.redirects);
+          expect(res.redirects).to.not.include('/profile');
+          expect(res.redirects).to.not.include('/');
+          expect(res.text).to.include('Red Hot Chili Peppers');
+          expect(res.text).to.not.include('Login or Register');
+        })
+    });
   });
 });
 
