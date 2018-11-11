@@ -258,6 +258,15 @@ describe('MusicianShip', function() {
           expect(res.text).to.not.include('Login or Register');
         })
     });
+
+    it('should return the campaign info. specifically the financial goal', function() {
+      return agent
+        .get(`/financialgoal/${id}`)
+        .then((res) => {
+          console.log('financialgoal res', res.body);
+          expect(res.body.financialGoal).to.equal(145);
+        })
+    });
   });
 });
 
