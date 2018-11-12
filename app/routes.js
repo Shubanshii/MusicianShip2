@@ -44,6 +44,7 @@ module.exports = function(app, passport) {
   // we will want this protected so you have to be logged in to visit
   // we will use route middleware to verify this (the isLoggedIn function)
   app.get('/profile', isLoggedIn, function(req, res) {
+    // console.log('profile route request', req);
     res.render('profile.ejs', {
       user: req.user // get the user out of session and pass to template
     });
@@ -158,7 +159,7 @@ module.exports = function(app, passport) {
   // })
 
   app.delete('/campaigns/:id', isLoggedIn, (req, res) => {
-    console.log('user', req.session);
+    // console.log('user', req.session);
     // console.log(req.params.id);
     Campaign.findById(req.params.id)
       .then(campaign => {

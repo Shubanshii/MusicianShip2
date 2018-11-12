@@ -206,14 +206,7 @@ describe('MusicianShip', function() {
 
     // Cannot figure out tests, how do i get routes to send back more data to make it easier?
     it('should post contribution', function() {
-      return agent
-        .post('/signup')
-        .send({
-          email: 'test@test.com',
-          password: 'test123'
-        })
-        .then((res) => {
-          // console.log('userres', res);
+
           return agent
             .post('/contributions')
             .send({
@@ -221,18 +214,18 @@ describe('MusicianShip', function() {
               campaignId: id
             })
             .then((res) => {
-              console.log(res.body);
-              console.log(id);
+              console.log('resbody', res.body.user);
+              console.log('user', user);
+              expect(res.body.user).to.equal(user);
               expect(res.body.id).to.equal(id);
               Contribution.findById(res.body.contributions[0], function(err, contribution) {
-                newUser = contribution.user;
-                console.log(contribution);
+                // console.log(contribution);
                 expect(contribution.amount).to.equal(5);
 
               })
             })
 
-        })
+
       // return agent
       //   .post('/contributions')
       //   .send({
