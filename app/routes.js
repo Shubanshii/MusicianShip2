@@ -144,6 +144,42 @@ module.exports = function(app, passport) {
       });
   });
 
+  // DELETE CAMPAIGN.  USER WHO CREATED CAMPAIGN CAN ONLY DELETE.
+  // MUST HAVE ZERO CONTRIBUTIONS OR BE A FINISHED CAMPAIGN.
+
+  // test without isLoggedIn
+  // app.delete('/campaigns/:id', (req, res) => {
+  //   // console.log(req.params.id);
+  //   Campaign
+  //     .findByIdAndRemove(req.params.id)
+  //     .then(() => {
+  //       res.status(204).json({ message: 'success' });
+  //     })
+  // })
+
+  app.delete('/campaigns/:id', isLoggedIn, (req, res) => {
+    console.log('user', req.session);
+    // console.log(req.params.id);
+    Campaign.findById(req.params.id)
+      .then(campaign => {
+        console.log('user', req.session.passport.user);
+        console.log('also user', campaign.user);
+        console.log(typeof req.session.passport.user);
+        console.log(typeof campaign.user);
+        console.log(campaign.user == req.session.passport.user);
+        if (campaign.user != req.session.passport.user) {
+          res.status(401).json({message: 'This project is not yours'});
+        } else {
+          Campaign
+            .findByIdAndRemove(req.params.id)
+            .then(() => {
+              res.status(204).json({ message: 'success' });
+            })
+        }
+      })
+
+  })
+
   // GET FINANICAL GOAL
   app.get('/financialgoal/:id', isLoggedIn, (req, res) => {
     Campaign

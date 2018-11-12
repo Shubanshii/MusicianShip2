@@ -61,6 +61,8 @@ function createCampaign() {
   });
 }
 
+
+
 //  on page load do this
 $(function() {
 	// getAndDisplayCampaigns();
