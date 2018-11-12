@@ -214,8 +214,8 @@ describe('MusicianShip', function() {
               campaignId: id
             })
             .then((res) => {
-              console.log('resbody', res.body.user);
-              console.log('user', user);
+              // console.log('resbody', res.body.user);
+              // console.log('user', user);
               expect(res.body.user).to.equal(user);
               expect(res.body.id).to.equal(id);
               Contribution.findById(res.body.contributions[0], function(err, contribution) {
@@ -244,7 +244,7 @@ describe('MusicianShip', function() {
       return agent
         .get(`/campaigns/${id}`)
         .then((res) => {
-          console.log('campaign page', res.redirects);
+          // console.log('campaign page', res.redirects);
           expect(res.redirects).to.not.include('/profile');
           expect(res.redirects).to.not.include('/');
           expect(res.text).to.include('Red Hot Chili Peppers');
@@ -256,7 +256,7 @@ describe('MusicianShip', function() {
       return agent
         .get(`/financialgoal/${id}`)
         .then((res) => {
-          console.log('financialgoal res', res.body);
+          // console.log('financialgoal res', res.body);
           expect(res.body.financialGoal).to.equal(145);
         })
     });

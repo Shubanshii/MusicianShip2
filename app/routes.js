@@ -163,11 +163,11 @@ module.exports = function(app, passport) {
     // console.log(req.params.id);
     Campaign.findById(req.params.id)
       .then(campaign => {
-        console.log('user', req.session.passport.user);
-        console.log('also user', campaign.user);
-        console.log(typeof req.session.passport.user);
-        console.log(typeof campaign.user);
-        console.log(campaign.user == req.session.passport.user);
+        // console.log('user', req.session.passport.user);
+        // console.log('also user', campaign.user);
+        // console.log(typeof req.session.passport.user);
+        // console.log(typeof campaign.user);
+        // console.log(campaign.user == req.session.passport.user);
         if (campaign.user != req.session.passport.user) {
           res.status(401).json({message: 'This project is not yours'});
         } else {
@@ -186,7 +186,7 @@ module.exports = function(app, passport) {
     Campaign
       .findById(req.params.id)
       .then(campaign => {
-        console.log('financialgoal log', campaign);
+        // console.log('financialgoal log', campaign);
         res.json({
         id: campaign._id,
         artist: campaign.artist,
@@ -214,7 +214,7 @@ module.exports = function(app, passport) {
       }
     }
 
-    console.log('sd0f9dslflsdkjf23423423424234234324', req.session.passport.user);
+    // console.log('sd0f9dslflsdkjf23423423424234234324', req.session.passport.user);
 
     Contribution
       .create({
