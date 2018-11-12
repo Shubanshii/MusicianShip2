@@ -110,10 +110,22 @@ function addContribution() {
 //     event.preventDefault();
 //   });
 // }
+function deleteCampaign() {
+  $('.delete-button').on('click', function(e) {
+    $.ajax({
+      type: "DELETE",
+      url: '/campaigns/' + id,
+      success: function(){},
+      dataType: "json",
+      contentType: "application/json"
+    });
+  });
+}
 
 $(function() {
 
     addContribution();
+    deleteCampaign();
     // getFinancialGoal();
     // getFinancialInfo(displayFiles);
 })
