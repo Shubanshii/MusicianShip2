@@ -267,6 +267,36 @@ describe('MusicianShip', function() {
           expect(res.body.financialGoal).to.equal(145);
         })
     });
+
+    it('should delete campaign if logged in as associated user', function() {
+      return agent
+        .delete(`/campaigns/${id}`)
+        .then((res) => {
+          Campaign.findById(id, function(err, campaign) {
+            expect(campaign).to.equal(null);
+          })
+        })
+    });
+
+    it('should not delete campaign if logged in as a user other than associated user', function() {
+      chai.request(app).get('/logout');
+      return agent
+        .post('/signup')
+        .send({
+          email: 'test@test.com',
+          password: 'test123'
+        })
+        .then(() => {
+          return agent
+            .delete(`/campaigns/${id}`)
+            .then((res) => {
+              Campaign.findById(id, function(err, campaign) {
+                expect(id).to.equal(campaign._id.toString());
+                expect(campaign).to.not.equal(null);
+              })
+            })
+        })
+    });
   });
 });
 
