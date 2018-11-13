@@ -106,7 +106,67 @@ module.exports = function(app, passport) {
   });
 
 
+  // UPDATE CAMPAIGN
+   // CANNOT CLICK TO THIS ROUTE IN APP.  STILL NEED TO MAKE EJS PAGE FOR IT
+   app.patch('/campaigns/:id', isLoggedIn, (req, res) => {
+     console.log(req.body.id);
+     console.log(req.params.id);
+     if (!(req.params.id && req.body.id && req.params.id === req.body.id)) {
+       res.status(400).json({
+      error: 'Request path id and request body id values must match'
+       });
+     }
+     const updated = {};
+     const updateableFields = ['artist', 'title', 'description', 'financialGoal', 'status'];
 
+     updateableFields.forEach(field => {
+        if (field in req.body) {
+          updated[field] = req.body[field];
+        }
+     });
+
+
+     Campaign
+      .findById(req.params.id, function(err, campaign) {
+        // console.log(campaign);
+        if (campaign.user != req.session.passport.user) {
+          res.status(401).json({message: 'This project is not yours'});
+        } else {
+          Campaign
+            .findByIdAndUpdate(req.params.id, {$set: updated }, {new: true})
+            .then(updatedCampaign => {
+              res.status(200).json({
+                id: updatedCampaign.id,
+                artist: updatedCampaign.artist,
+                title: updatedCampaign.title,
+                description: updatedCampaign.description,
+                financialGoal: updatedCampaign.financialGoal,
+                status: updatedCampaign.status
+
+              });
+            })
+        }
+      })
+     // Campaign
+     //   .findByIdAndUpdate(req.params.id, {$set: updated }, {new: true})
+     //   .then(updatedCampaign => {
+     //     if (updatedCampaign.user != req.session.passport.user) {
+     //       res.status(401).json({message: 'This project is not yours'});
+     //     } else {
+     //       res.status(200).json({
+     //         id: updatedCampaign.id,
+     //         artist: updatedCampaign.artist,
+     //         title: updatedCampaign.title,
+     //         description: updatedCampaign.description,
+     //         financialGoal: updatedCampaign.financialGoal,
+     //         status: updatedCampaign.status
+     //
+     //       });
+     //     }
+     //
+     //   })
+       .catch(err => res.status(500).json({ message: err }));
+   });
 //   app.patch('/campaigns/:id', isLoggedIn, (req, res) => {
 //   if (!(req.params.id && req.body.id && req.params.id === req.body.id)) {
 //     res.status(400).json({

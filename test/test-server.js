@@ -261,6 +261,47 @@ describe('MusicianShip', function() {
         })
     });
 
+    it('should update campaign if logged in as associated user', function() {
+      return agent
+        .patch(`/campaigns/${id}`)
+        .send({
+          id,
+          artist: 'testartist'
+        })
+        .then((res) => {
+          // console.log('patchresbody', res);
+          expect(res).to.have.status(200);
+          expect(res.body.artist).to.equal('testartist');
+        })
+    });
+
+    it('should not update campaign if logged in as a user other than associated user', function() {
+      chai.request(app).get('/logout');
+      return agent
+        .post('/signup')
+        .send({
+          email: 'test@test.com',
+          password: 'test123'
+        })
+        .then(() => {
+          return agent
+            .patch(`/campaigns/${id}`)
+            .send({
+              id,
+              artist: 'testartist'
+            })
+            .then((res) => {
+              // console.log('patchnotupdate', res.body);
+              expect(res).to.have.status(401);
+              expect(res.body.message).to.equal('This project is not yours');
+              Campaign.findById(id, function(err, campaign) {
+                // console.log('campaign inside not patch find by id', campaign);
+                expect(campaign.artist).to.equal("Red Hot Chili Peppers");
+              })
+            })
+        })
+    });
+
     it('should delete campaign if logged in as associated user', function() {
       return agent
         .delete(`/campaigns/${id}`)
