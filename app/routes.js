@@ -44,6 +44,7 @@ module.exports = function(app, passport) {
   // we will want this protected so you have to be logged in to visit
   // we will use route middleware to verify this (the isLoggedIn function)
   app.get('/profile', isLoggedIn, function(req, res) {
+    // console.log('profile route request', req);
     res.render('profile.ejs', {
       user: req.user // get the user out of session and pass to template
     });
@@ -158,15 +159,15 @@ module.exports = function(app, passport) {
   // })
 
   app.delete('/campaigns/:id', isLoggedIn, (req, res) => {
-    console.log('user', req.session);
+    // console.log('user', req.session);
     // console.log(req.params.id);
     Campaign.findById(req.params.id)
       .then(campaign => {
-        console.log('user', req.session.passport.user);
-        console.log('also user', campaign.user);
-        console.log(typeof req.session.passport.user);
-        console.log(typeof campaign.user);
-        console.log(campaign.user == req.session.passport.user);
+        // console.log('user', req.session.passport.user);
+        // console.log('also user', campaign.user);
+        // console.log(typeof req.session.passport.user);
+        // console.log(typeof campaign.user);
+        // console.log(campaign.user == req.session.passport.user);
         if (campaign.user != req.session.passport.user) {
           res.status(401).json({message: 'This project is not yours'});
         } else {
@@ -185,7 +186,7 @@ module.exports = function(app, passport) {
     Campaign
       .findById(req.params.id)
       .then(campaign => {
-        console.log('financialgoal log', campaign);
+        // console.log('financialgoal log', campaign);
         res.json({
         id: campaign._id,
         artist: campaign.artist,
@@ -213,7 +214,7 @@ module.exports = function(app, passport) {
       }
     }
 
-    console.log('sd0f9dslflsdkjf23423423424234234324', req.session.passport.user);
+    // console.log('sd0f9dslflsdkjf23423423424234234324', req.session.passport.user);
 
     Contribution
       .create({
